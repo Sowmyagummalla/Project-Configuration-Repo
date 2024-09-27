@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+    tools{
+        maven 'maven3'
+    }
+    environment {
+        SONAR_SCANNER_HOME = tool 'sonar-scanner'  // Name from "Global Tool Configuration"
+        SONAR_TOKEN = credentials('sonarqube-token') // SonarQube token added as Jenkins credential
+        PROJECT_KEY = 'Sowmyagummalla_boxfuse-sample-java-war-hello1' // SonarCloud project key
+        ORG_KEY = 'sowmyagummalla' // SonarCloud organization key
+    }
+
+    stages {
+        stage('checkout') {
+            steps {
+               git 'https://github.com/Sowmyagummalla/boxfuse-sample-java-war-hello1.git' 
+            }
+        }
+        stage ('build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+         stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('sonarcloud') {
+                    sh '''
+                        ${SONAR_SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=${PROJECT_KEY} \
+                        -Dsonar.organization=${ORG_KEY} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=https://sonarcloud.io \
+                        -Dsonar.login=$SONAR_TOKEN \
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+    }
+}
