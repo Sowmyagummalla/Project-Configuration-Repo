@@ -1,0 +1,13 @@
+---
+- name: To Install Jenkins
+  hosts: jenkins-server
+  become: true
+  tasks:
+    - name: Copy the script to the managed node
+      copy:
+        src: script2.sh
+        dest: /home/ubuntu/script2.sh
+        mode: '0777'
+
+    - name: Run the copied script
+      shell: /home/ubuntu/script2.sh
