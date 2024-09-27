@@ -1,0 +1,25 @@
+ssh ubuntu@13.233.173.228
+     ssh ubuntu@13.232.200.196
+      sudo nano /etc/ansible/hosts
+      ansible all -m ping
+     sudo nano /etc/ansible/hosts
+      ansible all -m ping
+      pwd
+      sudo vi script1.sh
+        sudo vi docker.yml
+      ansible-playbook docker.yml --syntax-check
+     ansible-playbook docker.yml
+     sudo vi dockerimages.yml
+     ansible-playbook  dockerimages.yml --syntax-check
+     ansible-playbook  dockerimages.yml
+     ansible docker-server -m command -a "docker images" -b
+     ansible docker-server -m command -a "docker ps -a" -b  
+     ansible docker-server -m command -a "docker exec  nexus_container cat /nexus-data/admin.password" -b
+     sudo vi script2.sh
+     sudo vi jenkins.yml
+     ansible-playbook jenkins.yml --syntax-check
+     ansible-playbook Jenkins.yml
+     ansible jenkins-server -m shell -a "script2.sh" -b
+     sudo vi script2.sh
+     sudo vi jenkins.yml
+     ansible jenkins-server -m command -a "cat /var/lib/jenkins/secrets/initialAdminPassword" -b
