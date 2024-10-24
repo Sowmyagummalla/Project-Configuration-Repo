@@ -42,3 +42,125 @@ pipeline {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+pipeline {
+    agent any
+    tools{
+        maven 'maven3'
+    }
+    environment{
+        SONAR_TOKEN = credentials('sonarqube-token')
+        NEXUS_URL = 'http://35.154.107.84:8081/'
+        NEXUS_REPO = 'sample-release'
+        ARTIFACT = 'org/example/devops/2.0.2/devops-2.0.2.war'
+        DOCKER_IMAGE = 'sowmyagummalla/artifact:1.0'
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Sowmyagummalla/Project1.git'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage('compile') {
+            steps {
+                sh 'mvn compile'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage('test') {
+            steps {
+                sh 'mvn test'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage('trivy') {
+            steps {
+                sh 'trivy fs ${WORKSPACE} --format table > trivy-scan-results.txt'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage('email') {
+            steps {
+                emailext attachmentsPattern: 'trivy-scan-results.txt', body: '', subject: 'TRIVY RESULT', to: 'sowmyareddygummalla@gmail.com'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage('sonar-analysis') {
+            steps {
+                script {
+                    def scannerHome = tool 'sonar-scanner' // Name of your SonarQube scanner installation
+                    withSonarQubeEnv('sonarqube') { // Name of your SonarQube configuration in Jenkins
+                        sh """
+                        mvn sonar:sonar  \
+                        -Dsonar.projectName='pipeline-job' \
+                        -Dsonar.projectVersion='1.0' \
+                        -Dsonar.sources='${WORKSPACE}' \
+                        -Dsonar.host.url='http://35.154.41.241:9000/' \
+                        -Dsonar.login='${SONAR_TOKEN}'
+                        """
+                    }
+                }
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        /*stage('quality gateway') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }*/
+        stage('mvn build package') {
+            steps {
+                sh 'mvn clean package'
+                slackSend channel: 'project', message: 'checkout stage successful'
+            }
+        }
+        stage(' nexus artifact upload') {
+            steps {
+              nexusArtifactUploader artifacts: [[artifactId: 'devops', classifier: '', file: 'target/devops.war', type: '.war']], credentialsId: 'nexus', groupId: 'org.example', nexusUrl: '35.154.107.84:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'sample-release', version: '2.0.2'
+              slackSend channel: 'project', message: 'checkout stage successful'
+               
+            }
+        }
+         stage('Download Artifact') {
+            steps {
+                sh 'curl -u admin:sowmya -O $NEXUS_URL/repository/$NEXUS_REPO/$ARTIFACT'
+            }
+        }
+       
+        stage('Build Docker Image') {
+            steps {
+                script{
+                   withDockerRegistry(credentialsId: 'dockerhub'){
+                      sh 'docker build -t $DOCKER_IMAGE .'
+                      sh 'docker push $DOCKER_IMAGE'
+                    }
+                   
+                }
+               
+            }
+        }
+       
+    }    
+}
