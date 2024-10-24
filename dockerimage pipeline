@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+    }
+     environment{
+        NEXUS_URL = 'http://13.201.77.177:8081/'
+        NEXUS_REPO = 'sample-release'
+        ARTIFACT = 'com/boxfuse/samples/hello/1.0/hello-1.0.war'
+        DOCKER_IMAGE = 'sowmyagummalla/hello:1.0'
+    }
+    stages {
+        stage('checkout') {
+            steps {
+                git 'https://github.com/Sowmyagummalla/boxfuse-sample-java-war-hello.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        stage('Nexus Artifact Upload') {
+            steps {
+             nexusArtifactUploader artifacts: [[artifactId: 'hello', classifier: '', file: 'target/hello-1.0.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.boxfuse.samples', nexusUrl: '13.201.77.177:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'sample-release', version: '1.0'            }
+        }
+        stage('Download Artifact') {
+            steps {
+                sh 'curl -u admin:sowmya -O $NEXUS_URL/repository/$NEXUS_REPO/$ARTIFACT'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script{
+                   withDockerRegistry(credentialsId: 'dockerhub'){
+                      sh 'docker build -t $DOCKER_IMAGE .'
+                      sh 'docker push $DOCKER_IMAGE'
+                    }
+                }   
+            }
+            
+        }
+    }
+}
