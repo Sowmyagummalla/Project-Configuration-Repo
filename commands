@@ -40,3 +40,4 @@ kubectl apply -f deployment.yml
  kubectl get deployment
  kubectl get pods -o wide
  kubectl get svc -o wide
+ eksctl delete cluster --name=devopscluster --region=ap-south-1
