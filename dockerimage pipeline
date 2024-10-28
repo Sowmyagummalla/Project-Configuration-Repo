@@ -1,28 +1,33 @@
 pipeline {
     agent any
     tools {
-        maven 'maven'
+        maven 'maven3'
     }
-     environment{
-        NEXUS_URL = 'http://13.201.77.177:8081/'
+    environment{
+        NEXUS_URL = 'http://43.204.98.209:8081/'
         NEXUS_REPO = 'sample-release'
-        ARTIFACT = 'com/boxfuse/samples/hello/1.0/hello-1.0.war'
-        DOCKER_IMAGE = 'sowmyagummalla/hello:1.0'
+        ARTIFACT = 'org/example/devops/1.0.1/devops-1.0.1..war'
+        DOCKER_IMAGE = 'sowmyagummalla/devops0'
     }
     stages {
         stage('checkout') {
             steps {
-                git 'https://github.com/Sowmyagummalla/boxfuse-sample-java-war-hello.git'
+                git branch: 'main', url: 'https://github.com/Sowmyagummalla/Project1.git'
             }
         }
-        stage('Build') {
+        stage('build') {
             steps {
                 sh 'mvn clean package'
             }
         }
-        stage('Nexus Artifact Upload') {
+        stage('compile') {
             steps {
-             nexusArtifactUploader artifacts: [[artifactId: 'hello', classifier: '', file: 'target/hello-1.0.war', type: 'war']], credentialsId: 'nexus', groupId: 'com.boxfuse.samples', nexusUrl: '13.201.77.177:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'sample-release', version: '1.0'            }
+                sh 'mvn compile'
+            }
+        }
+        stage('upload Artifact') {
+            steps {
+                nexusArtifactUploader artifacts: [[artifactId: 'devops', classifier: '', file: 'target/devops.war', type: '.war']], credentialsId: 'nexus', groupId: 'org.example', nexusUrl: '43.204.98.209:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'sample-release', version: '1.0.1'            }
         }
         stage('Download Artifact') {
             steps {
@@ -37,7 +42,7 @@ pipeline {
                       sh 'docker push $DOCKER_IMAGE'
                     }
                 }   
-            }
+            }    
             
         }
     }
