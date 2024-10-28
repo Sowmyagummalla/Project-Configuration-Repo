@@ -26,3 +26,17 @@ ssh ubuntu@13.233.173.228
      ansible jenkins -m command -a "docker run -itd --name dev1 -p 2348:8080 sowmyagummalla/devops0:latest" -b
      ansible jenkins -m command -a "docker ps" -b
       ansible Nexus -m command -a "docker exec -it nexus cat /nexus-data/admin.password" -b
+ ### CLUSTER CREATION COMMANDS ###
+eksctl create cluster --name=devopscluster --region=ap-south-1 --zones=ap-south-1a,ap-south-1b --version=1.30 --without-nodegroup
+eksctl create nodegroup --cluster=devopscluster --region=ap-south-1 --name=ekskube1-ng-public1 --node-type=t3.medium  --nodes=2 --nodes-min=2 --nodes-max=4 --node-volume-size=20 --ssh-access --ssh-public-key=cluster  --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-accessaws eks update-kubeconfig --name=devopscluster --region ap-south-1
+kubectl get nodes
+kubectl get pods
+kubectl get svc
+docker login
+nano deployment.yml
+nano svc.yml
+kubectl apply -f deployment.yml
+ kubectl apply -f svc.yml
+ kubectl get deployment
+ kubectl get pods -o wide
+ kubectl get svc -o wide
