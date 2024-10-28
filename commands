@@ -23,3 +23,6 @@ ssh ubuntu@13.233.173.228
      sudo vi script2.sh
      sudo vi jenkins.yml
      ansible jenkins-server -m command -a "cat /var/lib/jenkins/secrets/initialAdminPassword" -b
+     ansible jenkins -m command -a "docker run -itd --name dev1 -p 2348:8080 sowmyagummalla/devops0:latest" -b
+     ansible jenkins -m command -a "docker ps" -b
+      ansible Nexus -m command -a "docker exec -it nexus cat /nexus-data/admin.password" -b
