@@ -62,3 +62,77 @@ kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
 $result = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("Y0txMzRHV0s0T0k2REJMOQ=="))
 echo $result
 kubectl delete -n argo -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+
+
+### HPA ###
+nano deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-deployment
+  labels:
+    app: my-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: c1
+        image: sowmyagummalla/devops0:latest
+        ports:
+        - containerPort: 8080
+
+nano svc.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: my-app
+  ports:
+    - port: 80
+      targetPort: 8080
+nano hpa.yml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: myhpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: my-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 1  # Set a realistic CPU target, like 1%
+kubectl apply -f hpa.yml
+kubectl apply -f deployment.yml
+kubectl apply -f svc.yml
+kubectl get hpa
+kubectl get hpa -o wide
+kubectl get deployment
+kubectl get svc
+kubectl get pods
+kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+kubectl get deployment metrics-server -n kube-system
+kubectl top pods
+kubectl top nodes
+nano file.sh ---------- 
+./file.sh
+kubectl top pods
+kubectl top nodes
