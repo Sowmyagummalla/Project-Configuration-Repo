@@ -41,3 +41,24 @@ kubectl apply -f deployment.yml
  kubectl get pods -o wide
  kubectl get svc -o wide
  eksctl delete cluster --name=devopscluster --region=ap-south-1
+
+
+
+
+### ARGOCD ###
+eksctl create cluster --name=myargo --region=ap-south-1 --zones=ap-south-1a,ap-south-1b --version=1.30 --without-nodegroup
+eksctl create nodegroup --cluster=myargo --region=ap-south-1 --name=argo-ng-public-1 --node-type=t3.medium --nodes=2 --nodes-min=2 --nodes-max=4 --node-volume-size=20 --ssh-access --ssh-public-key=cluster --managed --asg-access --external-dns-access --full-ecr-access --appmesh-access --alb-ingress-access
+aws eks update-kubeconfig --name=myargo --region=ap-south-1
+eksctl utils write-kubeconfig --cluster=myargo
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl get all -n argocd
+kubectl get svc -n argocd 
+$env:KUBE_EDITOR='nano'
+kubectl edit svc argocd-server -n argocd
+kubectl get svc -n argocd
+$env:ARGOCD_SERVER = kubectl get svc argocd-server -n argocd -o go-template='{{(index .status.loadBalancer.ingress 0).hostname}}'
+kubectl get secret argocd-initial-admin-secret -n argocd -o yaml
+$result = [System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String("Y0txMzRHV0s0T0k2REJMOQ=="))
+echo $result
+kubectl delete -n argo -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
