@@ -1,0 +1,12 @@
+---
+- name: Change permissions of /var/run/docker.sock
+  hosts: all
+  become: true
+  tasks:
+    - name: Set permissions on Docker socket
+      file:
+        path: /var/run/docker.sock
+        mode: '0666'  # Sets read/write permissions for all users
+        owner: root
+        group: docker
+      tags: docker_permissions
